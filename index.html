@@ -36,7 +36,7 @@
                 - objektinio modelio neatitikimias reliaciniui
                 - objektinis modelis įsivaizduojamas kaip grafas
                 - reliacinis modelis įsiviazduojamas kaip lenteliės (Pvz 'Excel' lentelės)
-                - kyla 5 pagrinidinia nesutapimai bandant išsaugoti objektinį modelį reliaciniame
+                - kyla 5 pagrinidiniai nesutapimai bandant išsaugoti objektinį modelį reliaciniame
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -66,8 +66,8 @@
                 #### Privalumai
 
                 - Java duomenų klasės automatiškai susiejamos su reliacinu modeliu
-                - Paslepiai duomenų bazės struktūrą
-                - Pakankamai lengviau dirbti su keliomis reliacinių bazių implementacijomis
+                - Paslepia duomenų bazės struktūrą
+                - Lengviau dirbti su keliomis reliacinių bazių implementacijomis
                 - Palyginus su pliku JDBC žymiai mažiau `boilerplate` kodo
                 - Supraprastina sudėtingesnių objektų grafų užkrovimą
             </script>
@@ -78,7 +78,7 @@
 
                 - Labai sudėtinga bibliotekos implementacija
                 - Dažnai kažkas 'magiškai' pradeda veikti vien uždėjus anotaciją
-                - Beveik visada sudėtingesniais atvejais darbas su duomenų bazę
+                - Beveik visada sudėtingesniais atvejais darbas su duomenų baze
                 tampa neoptimalus ir reikalauja gilesnių žinių apie ORM biblioteką
                 - Sudėtingesniais atvejais išlenda faktas, jog naudojama realiacinė duomenų bazė
             </script>
@@ -102,10 +102,9 @@
           @Entity
           public class Good {
               @Id
+              @GeneratedValue(strategy = GenerationType.AUTO)
               private Integer id;
-
-            private String name;
-
+              private String name;
             // geteriai ir seteriai
           }
 
@@ -114,6 +113,7 @@
           - Saugomas lentelėje 'Good'
           - id laukas - pirminis raktas
           - turi 2 stulpelius - id ir name
+          - id laukas automatiskai generuojamas išsaugant naują įrašą
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
@@ -143,12 +143,101 @@
 
               ```
               <dependency>
-          			<groupId>org.springframework.boot</groupId>
-          			<artifactId>spring-boot-starter-data-jpa</artifactId>
-          		</dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-jpa</artifactId>
+              </dependency>
               ```
 
               Pagal nutylėjima JPA implementacija yra Hibernate
+              Startuojant aplikacijai Hibernate automatiškai sukuria trūkstamus schemos elementus duomenų bazėje
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Integracija su Spring
+
+              ```
+              @Autowired
+              private javax.persistence.EntityManager em;
+              ```
+
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Spring Transakcijos
+
+              ```
+              @Transactional
+              public void someMethod() {
+                // Do stuff with db
+              }
+              ```
+              Anotavus Spring karkasas pasirūpina, kad prieš kviečiant metodą transakcija būtų pradėta ir pasibaigus pakeitimai iššsaugoti
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Spring Transakcijos
+
+              - Jei trankacijos vykdymo metu iššaukiamas `RuntimeException`
+              pakeitimai duomenų bazėje atšaukiami
+              - Programiškai galima rollback'inti
+
+              ```
+              TransactionAspectSupport.currentTransactionStatus()
+                .setRollbackOnly()
+              ```
+
+              - Transakcijos pabaigoje pakeitimai valdomiems objektas autmatiškai išsaugomi
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Spring Lygių architektūra
+
+              - `@Controller` klasės atsakingos už REST Api mappinga (@GetMapping, @PostMapping)
+              - `@Service` klasės atsakingos už verslo logiką
+              - `@Repository` klasės atsakingos už darbą su duomenų bazėm - SQL užklausos
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Spring Lygių architektūra
+
+              - Tradicinė Web aplikacija Spring karkase turi šių lygių klases
+              - Paprastais atvejais JPA `@Entity` klasės taip pat naudojamos kaip serverio atsakymai
+              - Sudėtingesniais atvejais `@Entity` klasės priklauso `@Repository` lygiui, o `@Service` lygis turi atskirą modelį
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Duomenų bazė
+
+              ```
+              <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <scope>runtime</scope>
+              </dependency>
+              ```
+
+              - Demo tikslais naudosime H2 realiacinė duomenų bazę
+              - Duomenų bazė bus Java proceso atmintyje
+              - Perkrovus Java procesą duomenys dings
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              #### Duomenų bazė - H2 Console
+
+              - Spring Boot automatiškai paleidžia H2 Console naudojant H2 bazę
+              - http://localhost:8080/h2-console
+
+              ```
+              jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+              ```
+
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -163,482 +252,180 @@
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                `$ git init` - paruošia dabartinį katalogą kaip git repositoriją
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                `$ git add <path>`
+                #### Užduotis 1 produktų administravimas
 
-                Pridėti viską iš dabartinio katalogo:
+                - Paprastumo dėlei produktą apibrėžia 2 laukai
+                  - id - unikalus produkto id generuojamas išsaugojimo mechanizmo
+                  - title - produkto pavadinimas
+                - Išlaikykite `@Service`, `@Controller`, `@Repository` atskyrimus
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### Sąryšiai
 
-                ```$ git add .```
+                - Kaip ir duomenų bazėses taip ir objektiniame modelyje sąryšiai būna trijų tipų
+                  - Vienas su vienu (One to one)
+                  - Vienas su daug (One to many)
+                  - Daug su daug (Many to Many)
+                - Reliaciniame modelyje visi sąryšiai yra iškart abipusiai
+                - Objektiniame modelyje gali būti vienpusiai arba abipusiai
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                `$ git status` - dabartinė repositorijos būsena.
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              ![gitstatus](gitstatus.png "Git Status")
+                #### Sąryšių valdymas (cascade type)
 
-              Bus "sucommitinti" žalių failų pakeitimai
+                - Kiekvieno sąryšio anotacija turi atributą `cascadeType`
+                - Priklausomai nuo operacijos: PERSIST, MERGE, REMOVE, REFRESH, ALL
+                - Nenurodžius PERSIST tipo saugant objektą jo sąryšiai nebus išsaugoti duomenų bazėje
+                - Norint autmoatiškai deleguoti operacijos vaikiniams objektams - ALL
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                `$ git commit -m <message>`
-
-                Komanda, atliekama pabaigus darbą ar jo etapą su failais.
-                Susikuria changeset'as, turintis informaciją apie pasikeitusius failus.
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                `$ git log` - commit'ų istorija dabartinėje šakoje
-
-                ![gitlog](gitlog.png "Git Log")
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                ![idomu](idomu.jpg "idomu")
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Užduotis 1
-
-                - susikurkite katalogą: `studentai`
-                - inicijuokite jame git repositoriją
-                - sukurkite failą `studentai.dat`
-                - atverkite failą ir irašykite į jį savo vardą ir pavardę
-                - "sucommitinkite" pakeitimus
-                - peržvelkite, ar istorijoje atsirado commit'as
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Užduotis 1 - galimas sprendimas
+                #### Sąryšiai - OneToOne
 
                 ```
-                $ mkdir studentai
-                $ cd studentai
-                $ git init
-                $ echo "Jonas Petraitis" >> studentai.dat
-                $ git add studentai.dat
-                $ git commit -m "Added my name to studentai.dat"
-                $ git log
+                @Entity
+                public class ProductEntity {
+                    @OneToOne(cascade = CascadeType.ALL)
+                    private ProductDetail details;
+
+                }
                 ```
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### .gitignore
+                #### Sąryšiai - OneToOne - bidirectinal
 
-                - dažnai turime failų, kurie neturi būti commit'inami
-                  - `.eclipse` konfigūracija
-                  - `target` katalogas atsirandantis build'o metu
-                  - kiti failai specifiniai konkrečiam vartotojui
-                - `.gitignore` tekstinis failas leidžia nurodyti šablonus kelių, kurie neturi būti tvarkomi Git'o
+                ```
+                @Entity
+                public class ProductDetailsEntity {
+                    private String details;
+                    @OneToOne(mappedBy = "details")
+                    private ProductEntity product;
+                }
+                ```
+
+                Abipusio sąryšio atveju `mappedBy` atributas nurodo `owner` klasės lauko pavadinimą.
+                Pabandykit jo nenurodyti ir pažiūrėkite kaip atrodo neužkrautas objektas iš DB.
+                Pabandykite nurodyti `owner` klasėje
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### .gitignore
+                #### Sąryšiai - OneToMany
 
                 ```
-                .gradle
-                /build/
-                !gradle/wrapper/gradle-wrapper.jar
-                h2
-                logs
-
-                target
-                *.iml
-                .idea
-                ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Šakos (branch)
-
-                - pagal nutylėjimą sukuriamas "master branch'as"
-                - naujus branch'us kuria vartotojai
-                - kiekvienai programavimo užduočiai naudojami atskiri branch'ai. Pabaigtos užduoties pakeitimai perkeliami į "master" branch'ą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                ```
-                $ git checkout -b test
-                Switched to a new branch 'test'
-
-                $ git branch
-                  master
-                * test
-
-                $ git checkout master
-                Switched to branch 'master'
-
-                $ git branch
-                * master
-                  test
+                @Entity
+                public class ProductEntity {
+                    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
+                    private List<ProductSpecEntity> specifications;
+                }
                 ```
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                `$ git merge <branch-name>` - Atlikti merge commit'ą, perkeliant nurodyto branch'o pakeitimus į dabartinį branch'ą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                ```
-                $ git branch
-                * master
-                  test
-                $ echo "master branch tekstas" >> file
-                $ git add .
-                $ git commit -m "Master commitas"
-                [master 2a5c8f1] Master commitas
-                 1 file changed, 1 insertion(+)
-                ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                ```
-                $ git checkout -b naujas
-                Switched to a new branch 'naujas'
-                $ echo "naujas branch tekstas" >> file
-                $ git add .
-                $ git commit -m "Naujas commitas"
-                [naujas 52f1927] Naujas commitas
-                 1 file changed, 1 insertion(+)
-                $ git checkout master
-                Switched to branch 'master'
-                ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                ```
-                $ cat file
-                master branch tekstas
-                $ git merge naujas
-                Updating 2a5c8f1..52f1927
-                Fast-forward
-                 file | 1 +
-                 1 file changed, 1 insertion(+)
-                $ cat file
-                master branch tekstas
-                naujas branch tekstas
-                ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Git istorijos naršymas
-
-                Dažnai labai patogu tai daryti grafiniais įrankiais
+                #### Sąryšiai - OneToMany/ManyToOne
 
                 ```
-                $ sudo apt-get install gitg
-                $ gitg
+                @Entity
+                public class ProductSpecEntity {
+                    @ManyToOne
+                    private ProductEntity product;
+                }
                 ```
+
+                Atvirkščiai nei `OneToOne` atveju `mappedBy` yra `owner` klasėje. Kodėl?
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### Sąryšiai - ManyToMany
+
+                ```
+                @Entity
+                public class CartEntity {
+                    @ManyToMany
+                    private List<ProductEntity> products;
+                }
+                ```
+
 
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                ![cdsgitlog](cdsgitlog.png "Gitg")
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Git rodyklės (pointers)
-
-                - `HEAD` - dabartinės būsenos rodyklė
-                - Gudresni pavyzdžiai http://www.paulboxley.com/blog/2011/06/git-caret-and-tilde
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Commit ID
-
-                - `52f192703d9951f5bbaa55fc41c0c78bba811a49`
-                - unikaliai nusakyti commit'ą pakanka 7 pirmų simbolių `52f1927`
-                - žinant commit'o id, galima atlikti visokių veiksmų, pavyzdžiui nukreipti HEAD'ą į šį commit'ą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              ```
-              $ git checkout 52f1927
-
-              You are in 'detached HEAD' state. You can look around, make experimental
-              changes and commit them, and you can discard any commits you make in this
-              state without impacting any branches by performing another checkout.
-
-              If you want to create a new branch to retain commits you create, you may
-              do so (now or later) by using -b with the checkout command again. Example:
-
-                git checkout -b <new-branch-name>
-
-              HEAD is now at 52f1927... Naujas commitas
-
-              ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Merge konfliktai
-
-              - Įvyksta kai ta pati failo vieta buvo modifikuota kelių vartotojų
-              - Galimi `merge` ir `pull` komandų metu
-              - Ištaisius konfliktus failuose, juos reikia add'inti ir "sucommitinti" nekeinčiant commit'o pranešimo
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Konflikto pavyzdys
-
-              ```
-              Jonas Petraitis
-              <<<<<<< HEAD
-              1985-01-09
-              =======
-              Vilnius
-              >>>>>>> gimimo-vieta
-              ```
-
-              - `<<<<<<<` ir `>>>>>>>` žymi konfliktuojančios dalies pradžią ir pabaigą
-              - `<<<<<<< HEAD` nurodo, jog konfliktuojantis blokas yra iš branch'o, į kurį "merginame"
-              - `=======` atskiria dalis tarp branch'ų
-              - `>>>>>>> gimimo-vieta` nurodo, jog dalis tarp `=======` ir `>>>>>>>` yra iš branch'o `gimimo-vieta`
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Užduotis 2
-
-              - Įsitikinkite, kad esate `master` branch'e
-              - Sukurkite branch'ą pavadinimu `gimimo-data`
-              - Tame branch'e į failą studentai.dat naujoje eilutėje įrašykite savo gimimo datą
-              - "Sucommitinkite"
-              - Grįžkite į `master` branch'ą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Užduotis 2
-
-              - Sukurkite branch'ą `gimimo-vieta`
-              - Tame branch'e į failą studentai.dat naujoje eilutėje įrašykite savo gimimo vietą
-              - "Sucommitinkite"
-              - Grįžkite į `master` branch'ą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Užduotis 2
-
-              - "Įmerginkite" gimimo datos pakeitimus į master branch'ą
-              - "Įmerginkite" gimimo vietos pakeitimus į master branch'ą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                #### Užduotis 2 - galimas sprendimas
+                #### Sąryšiai - ManyToMany bidirectinal
 
                 ```
-                $ git checkout -b gimimo-data
-                Switched to a new branch 'gimimo-data'
+                @Entity
+                public class ProductEntity {
+                    @ManyToMany(mappedBy = "products")
+                    private List<CartEntity> carts;
+                }
                 ```
+
+                Kaip ir ManyToOne atveju nurodomas `mappedBy` atributas.
+                Kas būtų jei nurodytume `mappedBy` CartEntity klasėje?
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### Sąryšiai - ManyToMany pastabos
+
+                - Svarbu kur yra `mappedBy` atributas
+                - mūsų pavyzdyje Hibernate seks atnaujinimus tiktai `cart.products` kolekcijai
+                - jeigu papildysime tiktai `product.carts` kolekciją duomenų bazėje tai neatsispindės, nes `owner`
+                klasė yra `CartEntity`
+                - todėl programuotojas pats turi užtikrinti korektišką pridėjima:
                 ```
-                $ echo "1985-01-03" >> studentai.dat
-                $ git add .
-                $ git commit -m "Gimimo data"
-                [gimimo-data 1da96ec] Gimimo data
-                 1 file changed, 1 insertion(+)
-                ```
-                ```
-                $ git checkout master
-                Switched to branch 'master'
+                product.carts.add(cart);
+                //Only this modification will trigger db updates
+                cart.products.add(product);
                 ```
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### Užduotis 2 - galimas sprendimas
+                #### Užduotis 2 Sumodeliuokite vienas su vienu sąryšį
 
-                ```
-                $ git checkout -b gimimo-vieta
-                Switched to a new branch 'gimimo-vieta'
-                ```
-                ```
-                $ echo "Vilnius" >> studentai.dat
-                $ git add .
-                $ git commit -m "Gimimo vieta"
-                [gimimo-vieta a309462] Gimimo vieta
-                 1 file changed, 1 insertion(+)
-                ```
-                ```
-                $ git checkout master
-                Switched to branch 'master'
-                ```
+                - Kiekvienas produktas turi produkto detales
+                - Detalės yra sudėtingas darinys todėl prasminga jas saugoti atskiroje klasėje
+                - Paprastumo dėlei detales aprašo vienas String tipo laukas
+                - Užtikrinkite, kad išsaugojus produktą jo detalės išsisaugo taip pat
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### Užduotis 2 - galimas sprendimas
+                #### Užduotis 3 Sumodeliuokite vienas su daug
 
-                ```
-                $ git merge gimimo-data
-                Updating f9f86f9..1da96ec
-                Fast-forward
-                 studentai.dat | 1 +
-                 1 file changed, 1 insertion(+)
-                ```
-                ```
-                $ git merge gimimo-vieta
-                Auto-merging studentai.dat
-                CONFLICT (content): Merge conflict in studentai.dat
-                Automatic merge failed; fix conflicts and then commit the result.
-                ```
+                - Kiekvienas produktas turi specifikacijos įrašus
+                - Paprastumo dėlei specifikacija aprašo pavadinimas ir reikšmė
+                  - Ektrano dydis: 20x20
+                - Užtikrinkite, kad saugant produktą išsaugomos ir jo specifikacijos
+                - Užtikrinkite, kad atnaujinant produkto specifikacijas jos teisingai atsinaujina
+                  - trinsai, atsinaujina, kuriasi
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### Užduotis 2 - galimas sprendimas
+                #### Užduotis 4 Sumodeliuokite daug su daug sąryšį
 
-                ```
-                $ gedit studentai.dat # pataisome konfliktus faile
-                ```
-
-                ```
-                Jonas Petraitis
-                <<<<<<< HEAD
-                1985-01-03
-                =======
-                Vilnius
-                >>>>>>> gimimo-vieta
-                ```
-
-                ```
-                Jonas Petraitis
-                1985-01-03
-                Vilnius
-                ```
-                ```
-                $ git add .
-                $ git commit
-                [master 5c8fae3] Merge branch 'gimimo-vieta'
-                ```
+                - Modeliuosime prekių krepšelį
+                - Ta pati prekė gali priklausyti keliems krepšeliams
+                - Viename krepšelyje gali būti daug prekių
+                - Krepšelis gali turėti sukūrimo datą, atnaujinimo datą
+                  - Sukūrimo ir atnaujinimo datos negali būti pakeistos vartotojų
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### Decentralizacija
+                #### TODO slides in progress
 
-                - Kiekviena Git'o repositorija yra kažkurio laiko momento kopija.
-                - Ji gali nepriklausomai vystytis
-                - Dažniausiai yra Git Serveris, kuris yra centrinė repositorija (origin)
-                - Populiariausi serveriai: https://github.com, https://gitlab.com, https://bitbucket.org
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Remote repositorijos
-
-              - Dažniausiai būna viena centrinė remote repositorija, vadinama 'origin'
-              - Kuriant naują git repositoriją (`git init`) ją reikia prisidėti pačiam (`git remote add`)
-              - Klonuojant (`git clone`) egzistuojančią repositoriją, ji pridedama automatiškai
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              `$ git remote add <name> <repository>`
-
-              ```
-              $ git remote add origin git@github.com:Antanukas/it-akademija-java-tech.git
-              $ git remote -v
-               origin  git@github.com:Antanukas/it-akademija-java-tech.git (fetch)
-               origin  git@github.com:Antanukas/it-akademija-java-tech.git (push)
-              ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              `$ git clone <repository>`
-
-              ```
-              $ git clone git@github.com:Antanukas/it-akademija-java-tech.git
-              ```
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-                `remote` ar `clone` repositoriumo radimas
-
-                ![cloneexample](cloneexample.png "Clone example")
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Lokalios repo sinchronizacija
-
-              `$ git pull` arba `$ git fetch`
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### pull vs fetch
-
-              - fetch - atsisiunčia pakeitimus iš repositorijos, bet nepritaiko jų lokaliai kopijai
-              - pull - padaro tą patį, ką ir fetch, bet pritaiko gautus pakeitimus, o dėl to gali reikėti merge'o
-                - techniškai git pull atveju vyksta tokia komandų seka, jei esame master'yje:
-                ```
-                $ git fetch
-                $ git merge remotes/origin/master
-                ```
-              - dažniausiai visada darome `git pull` ir nesukame galvos
-              - kad atsinaujintų visi branch'ai, galima daryti `git pull --all`
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Lokalių pakeitimų išstumimas į remote'ą
-
-              `$ git push origin <branch-name>`
-
-              - jei remote'as pabėgęs į priekį, bus atspausdinta klaida
-                - tokiu atveju reikia atlikti `git pull`, ispręsti merge konfliktus ir bandyti dar kartą
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Užduotis 3
-
-              - Susikurkite Github'o vartotoją
-              - Susikurkite Gihtub'e repositoriją
-              - Prisidėkite remote'ą
-              - Perkelkite į Github'ą prieš tai užduotyse sukurtą repositoriją
-            </script>
-        </section>
-        <section data-markdown data-background-image="sbg.png">
-            <script type="text/template">
-              #### Pasimokyti patiems
-
-              - https://git-scm.com/book/en/v2
-                - Pirmi 2 skyriai is a MUST
-                - 3 skyrius smalsiems
-                - visa knyga rimtiems
-              - http://learngitbranching.js.org/
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
