@@ -33,9 +33,9 @@
             <script type="text/template">
                 #### Object-Relational Impedence mismatch
 
-                - objektinio modelio neatitikimias reliaciniui
+                - objektinio modelio neatitikimas reliaciniui
                 - objektinis modelis įsivaizduojamas kaip grafas
-                - reliacinis modelis įsiviazduojamas kaip lenteliės (Pvz 'Excel' lentelės)
+                - reliacinis modelis įsivaizduojamas kaip lentelės (Pvz 'Excel' lentelės)
                 - kyla 5 pagrinidiniai nesutapimai bandant išsaugoti objektinį modelį reliaciniame
             </script>
         </section>
@@ -47,8 +47,8 @@
                 - Paveldimumas: ar girdėjote apie tėvines lenteles? :)
                 - Lygybė: pirminis raktas prieš `==` ir `equals`
                 - Sąryšiai: objektiniame vienpusiai, o reliaciniame dvipusiai
-                - Navigacija per duomenis: objektiniai reikia vaiksčioti nuo šaknies
-                per sąryšius, o reliacinemiai per `JOIN` sąlygas
+                - Navigacija per duomenis: objektuose reikia vaiksčioti nuo šaknies
+                per sąryšius, o lentelėse per `JOIN` sąlygas
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -56,16 +56,16 @@
                 #### ORM
 
                 - ORM - Object Relational Mapping
-                - Būdas susieti reliacines duomenų bazes su objektinėmis duomenų struktūromis
-                - JPA - Standartas apibrėžiantis, kaip ORM biblioteka turi vieikti
-                - JPA implementacijos: Hibernate, EclipseLink, kitos
+                - Padeda konvertuoti tarp reliacinio ir objektinio modelių
+                - JPA - Standartas apibrėžiantis, kaip ORM biblioteka turi veikti
+                - JPA implementacijos: Hibernate, EclipseLink, OpenJPA ...
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
                 #### Privalumai
 
-                - Java duomenų klasės automatiškai susiejamos su reliacinu modeliu
+                - Java duomenų klasės automatiškai konvertuojamos iš/į reliacinį modelį
                 - Paslepia duomenų bazės struktūrą
                 - Lengviau dirbti su keliomis reliacinių bazių implementacijomis
                 - Palyginus su pliku JDBC žymiai mažiau `boilerplate` kodo
@@ -85,7 +85,7 @@
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### JPA - `EntityManager`
+                #### JPA pagrindinis objektas - `EntityManager`
 
                 - find(Class,Object) - surasti objektą pagal pirminį raktą
                 - persist(Object) - išsaugoti ir pradėti valdyti objektą
@@ -196,7 +196,7 @@
             <script type="text/template">
               #### Spring Lygių architektūra
 
-              - `@Controller` klasės atsakingos už REST Api mappinga (@GetMapping, @PostMapping)
+              - `@RestController` klasės atsakingos už REST Api mappinga (@GetMapping, @PostMapping)
               - `@Service` klasės atsakingos už verslo logiką
               - `@Repository` klasės atsakingos už darbą su duomenų bazėm - SQL užklausos
             </script>
@@ -248,6 +248,10 @@
                   - GET /products - sąrašas produktų
                   - POST /products - sukurimas naujo produkto
                   - GET /products?title=produktoPavadinimasPaieskai - sugrąžina produktų sąrašą kurių pavadinimai sutampa
+                - Paleidimas
+                ```
+                $ mvn clean spring-boot:run
+                ```
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -257,7 +261,7 @@
                 - Paprastumo dėlei produktą apibrėžia 2 laukai
                   - id - unikalus produkto id generuojamas išsaugojimo mechanizmo
                   - title - produkto pavadinimas
-                - Išlaikykite `@Service`, `@Controller`, `@Repository` atskyrimus
+                - Išlaikykite `@Service`, `@RestController`, `@Repository` atskyrimus
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -321,7 +325,8 @@
                 ```
                 @Entity
                 public class ProductEntity {
-                    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
+                    @OneToMany(cascade = CascadeType.ALL)
+                    @JoinColumn(name = "product_id")
                     private List<ProductSpecEntity> specifications;
                 }
                 ```
@@ -339,7 +344,7 @@
                 }
                 ```
 
-                Atvirkščiai nei `OneToOne` atveju `mappedBy` yra `owner` klasėje. Kodėl?
+                Ar tai veikia? Kokių pakeitimų reikia ProductEntity klasėje? Ar užtenka tik keisti anotacijas?
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -387,6 +392,16 @@
                 //Only this modification will trigger db updates
                 cart.products.add(product);
                 ```
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### Sąryšiai - patarimai
+
+                - paprastumo dėlei darykite vienpusius 'unidirectional' sąryšius
+                - prireikus galite naudoti dviusius (bidirectional)
+                - turint dvipusius sąryšius geriausia turėti dedikuotus metodus ant `entity`
+                klasių kurie pasirūpina jog kita pusė atnaujinama trinimo, pridėjimo atveju.
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
