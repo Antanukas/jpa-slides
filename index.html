@@ -122,8 +122,6 @@
                 - Java Persistence Query Language
                 - panašu į SQL
                 - rašant join'us siejama ne per pirminį raktą, o per lauką klasėje
-                - refresh(Object) - gauti objekto pasikeitimus iš DB
-                - remove(Object) - pašalinti objektą
 
             </script>
         </section>
@@ -180,7 +178,7 @@
             <script type="text/template">
               #### Spring Transakcijos
 
-              - Jei trankacijos vykdymo metu iššaukiamas `RuntimeException`
+              - Jei transakcijos vykdymo metu iššaukiamas `RuntimeException`
               pakeitimai duomenų bazėje atšaukiami
               - Programiškai galima rollback'inti
 
@@ -222,7 +220,7 @@
               </dependency>
               ```
 
-              - Demo tikslais naudosime H2 realiacinė duomenų bazę
+              - Demo tikslais naudosime H2 realiacinę duomenų bazę
               - Duomenų bazė bus Java proceso atmintyje
               - Perkrovus Java procesą duomenys dings
             </script>
@@ -247,7 +245,7 @@
                 - Sukurkite 3 REST endpointus:
                   - GET /products - sąrašas produktų
                   - POST /products - sukurimas naujo produkto
-                  - GET /products?title=produktoPavadinimasPaieskai - sugrąžina produktų sąrašą kurių pavadinimai sutampa
+                  - GET /products?title=produktoPavadinimasPaieskai - grąžina produktų sąrašą kurių pavadinimai sutampa
                 - Paleidimas
                 ```
                 $ mvn clean spring-boot:run
@@ -283,7 +281,7 @@
                 - Kiekvieno sąryšio anotacija turi atributą `cascadeType`
                 - Priklausomai nuo operacijos: PERSIST, MERGE, REMOVE, REFRESH, ALL
                 - Nenurodžius PERSIST tipo saugant objektą jo sąryšiai nebus išsaugoti duomenų bazėje
-                - Norint autmoatiškai deleguoti operacijos vaikiniams objektams - ALL
+                - Norint automatiškai deleguoti operacijos vaikiniams objektams - ALL
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
@@ -399,7 +397,7 @@
                 #### Sąryšiai - patarimai
 
                 - paprastumo dėlei darykite vienpusius 'unidirectional' sąryšius
-                - prireikus galite naudoti dviusius (bidirectional)
+                - prireikus galite naudoti dvipusius (bidirectional)
                 - turint dvipusius sąryšius geriausia turėti dedikuotus metodus ant `entity`
                 klasių kurie pasirūpina jog kita pusė atnaujinama trinimo, pridėjimo atveju.
             </script>
