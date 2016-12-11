@@ -404,6 +404,88 @@
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
+                #### Sąryšių užkrovimo vėlinimas
+
+                - visos sąryšių anotacijos turi atributą `fetch`
+                - `FetchType` enum'as apibrežią reikšmes `EAGER` ir `LAZY`
+                - Pagal nutylėjimą `@OneToOne` ir `@ManyToOne` yra `EAGER`
+                  o `@OneToMany` ir `@ManyToMany` yra `LAZY`
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### LAZY ir EAGER reikšmė
+
+                - jei sąryšis yra `LAZY` `find` arba JPQL select'o atveju kolekcija nebus inicijuota duomenimis
+                - kolekcija inicijuojama bus tik jos naudojimo vietoje (iterujant ar darant `.get(index)`)
+                - `EAGER` sąryšiai yra užkraunami iškarto atliekant užklausą
+                - kokių užklausų reikės JPA implementacija nusprendžia pati
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                ```
+                @Transactional(readOnly = true)
+                public List<ProductEntity> findAll() {
+                    List<ProductEntity> all = repository.findAll();
+                    return all.stream().map(p -> {
+                        ProductEntity newP = new ProductEntity();
+                        newP.setId(p.getId());
+                        newP.setTitle(p.getTitle());
+                        newP.setSpecifications(new ArrayList<>());
+                        //newP.getSpecifications().addAll(p.getSpecifications());
+                        return newP;
+                    }).collect(Collectors.toList());
+                }
+                ```
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### JPQL `join fetch`
+
+                - dažniausiai anotacijose paliekame `LAZY` užkrovimą ir `EAGER` norime tik tam tikrais atvejais
+                - JPQL užklausos yra dažnas būdas tam tikrais atvejais daryti `EAGER` užkrovimą vietoje `LAZY`
+                - tam naudojame `fetch joinus`
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              ```
+              public List<ProductEntity> findByTitle(String title) {
+                  Query q = em.createQuery(
+                          "SELECT DISTINCT p FROM ProductEntity p " +
+                          "JOIN FETCH p.specifications " +
+                          "WHERE p.title = :title");
+
+                  q.setParameter("title", title);
+                  return q.getResultList();
+              }
+              ```
+
+              Reikia turėti omeny, kad `distinct` dideliems duomenų kiekiams veikia lėtai.
+              Bet kokių SQL join'ų rezulato lentelės dydis yra lygus Dekarto sandaugai.
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+              ```
+              public List<ProductEntity> findByTitle(String title) {
+                Session session = (Session) em.getDelegate();
+                return session.createCriteria(ProductEntity.class)
+                          .add(and(eq("title", title)))
+                          .setFetchMode("specifications", FetchMode.SELECT)
+                          .setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY)
+                          .list();
+              }
+              ```
+
+              Alternatyva nedaryti `distinct` naudojant Hibernate Criteria API.
+              Tačiau tada prisirišame prie konkrečios implementacijos.
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
                 #### Užduotis 2 Sumodeliuokite vienas su vienu sąryšį
 
                 - Kiekvienas produktas turi produkto detales
@@ -437,8 +519,30 @@
         </section>
         <section data-markdown data-background-image="sbg.png">
             <script type="text/template">
-                #### TODO slides in progress
+                #### Užduotis 5 Ataskaitos formavimas
 
+                - Užbaikite endpoint'ą `/api/reports/lcd-monitors`
+                - Jis turi grąžinti sąrašą LCD monitorių kurie yra krepšelyje
+                - Kriterijai:
+                  - ProductEntity.specifications.key == 'monitorType'
+                  - ProductEntity.specifications.value == 'LCD'
+                  - Produktas yra krepšelyje
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### Užduotis 6 Ataskaitos formavimas viena užklausa
+
+                - Išpildykite tuos pačius reikalavimus naudojant tik vieną JPQL užklausą
+                - Patikrinkite, kad Hibernate sugeneruoja 1 SQL statement'ą
+                - Kaip manote, kuris sprendimas geresnis ir kodėl?
+            </script>
+        </section>
+        <section data-markdown data-background-image="sbg.png">
+            <script type="text/template">
+                #### Užduotis 6 Ataskaitos formavimas viena užklausa
+
+                - Pamenat `count` ir `group by` iš duomenų bazių kurso?
             </script>
         </section>
         <section data-markdown data-background-image="sbg.png">
